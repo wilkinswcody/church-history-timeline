@@ -16,33 +16,39 @@
   .app{min-height:100vh;display:flex;flex-direction:column}
 
   /* Hearts */
-  .hearts{position:fixed;top:16px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:40}
+  .hearts{position:fixed;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:40}
   .heart{width:30px;height:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
   .off{opacity:.28;filter:grayscale(1) brightness(.7)}
 
-  /* Top info + restart */
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:14px}
+  /* Top info + restart (add top padding so hearts never overlap it) */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:64px 18px 14px;gap:14px}
   .help{color:var(--muted);font-size:14px}
   .btn{appearance:none;border:1px solid #2a3a57;background:transparent;color:#93c5fd;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800}
 
   /* Stage */
   .stage{position:relative;flex:1;display:flex;flex-direction:column;padding:0 16px 16px}
-  .board{flex:1;border:1px solid #0b1220;border-radius:16px;background:linear-gradient(0deg,#0f1b2f,transparent);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+  .board{
+    flex:1;border:1px solid #0b1220;border-radius:16px;
+    background:linear-gradient(0deg,#0f1b2f,transparent);
+    box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;
+    /* NEW: reserve vertical space so timeline never sits under the next card */
+    padding-top:160px;
+  }
   .baseline{height:1px;background:var(--line);position:relative}
   .baseline::after{content:"";position:absolute;inset:0;border-top:1px dashed #2a3a5a;opacity:.55}
 
   /* Next card dock (centered top like WikiTrivia) */
-  .nextDock{position:absolute;left:50%;top:58px;transform:translateX(-50%);z-index:30}
+  .nextDock{position:absolute;left:50%;top:90px;transform:translateX(-50%);z-index:30}
   .nextDock .qcard{width:260px}
 
   /* Timeline row */
   .content{position:relative;flex:1;overflow:auto;padding:18px}
-  .timeline{display:flex;align-items:flex-end;gap:18px;min-height:260px;padding-top:24px}
+  .timeline{display:flex;align-items:flex-end;gap:24px;min-height:280px;padding-top:6px}
   .gap{width:28px;height:156px;border-radius:10px;background:linear-gradient(180deg,#3b82f612,#3b82f618,#3b82f612);opacity:.35;transition:.12s;border:1px dashed transparent}
   .gap.on{opacity:1;border-color:#60a5fa}
 
   /* Cards in timeline */
-  .card{width:240px;min-width:240px;border-radius:12px;border:1px solid #0b1220;overflow:hidden;box-shadow:var(--shadow);background:#f6f8ff}
+  .card{width:260px;min-width:260px;border-radius:12px;border:1px solid #0b1220;overflow:hidden;box-shadow:var(--shadow);background:#f6f8ff}
   .card .hd{background:#fff;padding:10px 12px 4px;font-weight:800;color:#0b1220}
   .card .sub{background:#fff;padding:0 12px 8px;color:#475569;font-size:12px}
   .card .img{height:96px;background:#dfe8f5;background-size:cover;background-position:center}
