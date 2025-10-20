@@ -6,126 +6,141 @@
 <title>Church History Timeline — Wikitrivia Style</title>
 <style>
   :root{
-    --bg:#0e1626; --surface:#0f1b2f; --line:#223149;
-    --text:#e6edf3; --muted:#98a6be; --white:#ffffff;
-    --blue1:#3b82f6; --blue2:#1d4ed8; --green:#22c55e; --red:#ef4444;
-    --r:14px; --shadow:0 12px 40px rgba(0,0,0,.45);
+    --bg:#0c1321; --surface:#0f1b2f; --line:#223149;
+    --text:#e6edf3; --muted:#9fb0cc; --white:#ffffff;
+    --blue1:#3b82f6; --blue2:#1d4ed8; --green:#16a34a; --red:#ef4444;
+    --r:14px; --shadow:0 18px 50px rgba(0,0,0,.45);
   }
   *{box-sizing:border-box;user-select:none}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  .app{height:100vh;display:flex;flex-direction:column}
-  .hearts{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:3}
-  .heart{width:28px;height:28px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
-  .heart svg{display:block}
-  .off{opacity:.28;filter:grayscale(1) brightness(.6)}
+  .app{min-height:100vh;display:flex;flex-direction:column}
 
-  .wrap{flex:1;display:flex;flex-direction:column;padding:0 16px 16px}
+  /* Hearts */
+  .hearts{position:fixed;top:16px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:40}
+  .heart{width:30px;height:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+  .off{opacity:.28;filter:grayscale(1) brightness(.7)}
+
+  /* Top info + restart */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:14px}
+  .help{color:var(--muted);font-size:14px}
+  .btn{appearance:none;border:1px solid #2a3a57;background:transparent;color:#93c5fd;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800}
+
+  /* Stage */
+  .stage{position:relative;flex:1;display:flex;flex-direction:column;padding:0 16px 16px}
   .board{flex:1;border:1px solid #0b1220;border-radius:16px;background:linear-gradient(0deg,#0f1b2f,transparent);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
-  .help{padding:10px 14px;color:var(--muted);font-size:14px}
-  .baseline{position:relative;height:1px;background:var(--line)}
-  .baseline::after{content:"";position:absolute;inset:0;border-top:1px dashed #2a3a5a;opacity:.5}
+  .baseline{height:1px;background:var(--line);position:relative}
+  .baseline::after{content:"";position:absolute;inset:0;border-top:1px dashed #2a3a5a;opacity:.55}
 
-  .stage{position:relative;flex:1;overflow:auto;padding:18px}
-  .timeline{display:flex;align-items:flex-end;gap:18px;min-height:240px;position:relative;padding-top:24px}
-  .gap{width:26px;height:148px;border-radius:10px;background:linear-gradient(180deg,#3b82f612,#3b82f618,#3b82f612);opacity:.35;transition:.12s;border:1px dashed transparent}
+  /* Next card dock (centered top like WikiTrivia) */
+  .nextDock{position:absolute;left:50%;top:58px;transform:translateX(-50%);z-index:30}
+  .nextDock .qcard{width:260px}
+
+  /* Timeline row */
+  .content{position:relative;flex:1;overflow:auto;padding:18px}
+  .timeline{display:flex;align-items:flex-end;gap:18px;min-height:260px;padding-top:24px}
+  .gap{width:28px;height:156px;border-radius:10px;background:linear-gradient(180deg,#3b82f612,#3b82f618,#3b82f612);opacity:.35;transition:.12s;border:1px dashed transparent}
   .gap.on{opacity:1;border-color:#60a5fa}
 
-  .card{width:240px;min-width:240px;border-radius:12px;border:1px solid #0b1220;overflow:hidden;box-shadow:var(--shadow);background:#e8eef8}
-  .card .hd{background:var(--white);padding:10px 12px 4px;font-weight:800;color:#0b1220}
-  .card .sub{background:var(--white);padding:0 12px 10px;color:#475569;font-size:12px}
-  .card .img{height:88px;background:#dfe8f5}
+  /* Cards in timeline */
+  .card{width:240px;min-width:240px;border-radius:12px;border:1px solid #0b1220;overflow:hidden;box-shadow:var(--shadow);background:#f6f8ff}
+  .card .hd{background:#fff;padding:10px 12px 4px;font-weight:800;color:#0b1220}
+  .card .sub{background:#fff;padding:0 12px 8px;color:#475569;font-size:12px}
+  .card .img{height:96px;background:#dfe8f5;background-size:cover;background-position:center}
   .card .yr{padding:8px 12px;background:#0b1220;color:#cbd5e1;font-weight:800}
   .card.ok .yr{background:#065f46;color:#a7f3d0}
   .card.bad .yr{background:#7f1d1d;color:#fecaca}
 
-  .queue{display:flex;gap:16px;padding:12px 16px;border-top:1px solid #0b1220;background:linear-gradient(180deg,transparent,#0f1b2f)}
-  .slot{flex:1;min-height:120px;border:1px dashed #2a3b55;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#93c5fd}
-  .qcard{width:260px;min-width:260px;border-radius:12px;border:1px solid #0b1220;overflow:hidden;box-shadow:var(--shadow);background:#e8eef8;touch-action:none}
-  .qcard .hd{background:var(--white);padding:10px 12px 4px;font-weight:800;color:#0b1220}
-  .qcard .sub{background:var(--white);padding:0 12px 10px;color:#475569;font-size:12px}
-  .qcard .img{height:88px;background:linear-gradient(180deg,#f1f5ff 0,#e5ecff 100%);display:flex;align-items:center;justify-content:center;color:#64748b;font-size:12px}
+  /* Draggable "next" card */
+  .qcard{border-radius:12px;border:1px solid #0b1220;overflow:hidden;box-shadow:var(--shadow);background:#f6f8ff;touch-action:none}
+  .qcard .hd{background:#fff;padding:10px 12px 4px;font-weight:800;color:#0b1220}
+  .qcard .sub{background:#fff;padding:0 12px 8px;color:#475569;font-size:12px}
+  .qcard .img{height:110px;background:linear-gradient(180deg,#f1f5ff 0,#e5ecff 100%);background-size:cover;background-position:center}
   .qcard .foot{padding:8px 12px;text-align:center;font-weight:800;color:#0b1220;background:linear-gradient(0deg,var(--blue2) 0%, var(--blue1) 120%)}
-
-  .actions{display:flex;align-items:center;gap:10px}
-  .btn{appearance:none;border:0;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800}
-  .btn.ghost{background:transparent;color:#93c5fd;border:1px solid #334155}
 
   .dragging{position:fixed;pointer-events:none;transform:translate(-50%,-50%) scale(.98);z-index:50}
 
+  /* End modal */
   .end{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:80}
   .end.show{display:flex}
   .modal{width:min(560px,92vw);background:#0e1524;border:1px solid #0b1220;border-radius:18px;box-shadow:var(--shadow);padding:22px;text-align:center}
   .modal h2{margin:0 0 8px}
+  .cta{appearance:none;border:0;background:#3b82f6;color:#0b1220;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800}
 </style>
 </head>
 <body>
 <div class="app">
+  <!-- hearts -->
   <div class="hearts" id="hearts"></div>
 
-  <div class="wrap">
+  <div class="topbar">
+    <div class="help">Drag the blue card into the correct place on the timeline. Wrong drops cost a heart and then snap to the correct spot.</div>
+    <button id="restart" class="btn">Restart</button>
+  </div>
+
+  <div class="stage">
     <div class="board">
-      <div class="help">Drag the blue card into the correct place on the timeline. Wrong drops cost a heart and then snap to the correct spot.</div>
       <div class="baseline"></div>
 
-      <div class="stage">
-        <div id="timeline" class="timeline"></div>
-      </div>
+      <!-- where the next draggable card sits (like WikiTrivia) -->
+      <div class="nextDock" id="nextDock"></div>
 
-      <div class="queue">
-        <div class="slot" id="currentSlot">Loading…</div>
-        <div class="slot" id="bufferSlot">Next card</div>
-        <div class="actions"><button id="restart" class="btn ghost">Restart</button></div>
+      <div class="content">
+        <div id="timeline" class="timeline"></div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- end screen -->
 <div id="end" class="end">
   <div class="modal">
     <h2 id="endTitle">All done! 🎉</h2>
     <p id="endSub" style="color:#98a6be"></p>
     <div style="display:flex;gap:12px;justify-content:center;margin-top:10px">
-      <button class="btn" style="background:#3b82f6;color:#0b1220" id="again">Play again</button>
+      <button class="cta" id="again">Play again</button>
     </div>
   </div>
 </div>
 
 <script>
-/* ----- Data (1805–1839) ----- */
+/* ---------- Data (images mapped in chronological order) ---------- */
 const EVENTS = [
-  {id:"CH001", label:"Joseph Smith was born", year:1805, description:"Sharon, Vermont."},
-  {id:"CH002", label:"The First Vision", year:1820, description:"God the Father and Jesus Christ appeared to Joseph Smith."},
-  {id:"CH003", label:"Angel Moroni appears", year:1823, description:"Moroni tells of the plates."},
-  {id:"CH004", label:"Joseph Smith receives the plates", year:1827, description:"Receives the golden plates from Moroni."},
-  {id:"CH005", label:"Book of Mormon translation completed", year:1829, description:"Translation completed."},
-  {id:"CH006", label:"Priesthood restored", year:1829, description:"Aaronic and Melchizedek Priesthoods restored."},
-  {id:"CH007", label:"Book of Mormon published", year:1830, description:"First edition in Palmyra, New York."},
-  {id:"CH008", label:"The Church organized", year:1830, description:"Organized in Fayette, New York."},
-  {id:"CH009", label:"Saints gather in Kirtland", year:1831, description:"Kirtland, Ohio, becomes a gathering place."},
-  {id:"CH010", label:"Independence designated as Zion", year:1831, description:"Designated for the city of Zion."},
-  {id:"CH011", label:"Saints expelled from Jackson County", year:1833, description:"Forced to leave Jackson County, Missouri."},
-  {id:"CH012", label:"Zion’s Camp", year:1834, description:"Camp of Israel marches to Missouri."},
-  {id:"CH013", label:"Apostles and Seventy organized", year:1835, description:"Quorum of the Twelve and Seventy organized."},
-  {id:"CH014", label:"Kirtland Temple dedicated", year:1836, description:"First temple dedicated in this dispensation."},
-  {id:"CH015", label:"Priesthood keys restored in Kirtland Temple", year:1836, description:"Keys committed to Joseph and Oliver."},
-  {id:"CH016", label:"Leaders move to Far West", year:1838, description:"Church leaders move to Far West, Missouri."},
-  {id:"CH017", label:"Liberty Jail", year:1838, description:"Joseph Smith imprisoned in Liberty Jail."},
-  {id:"CH018", label:"Saints driven from Missouri", year:1839, description:"Forced to leave Missouri."},
+  {id:"CH001", label:"Joseph Smith was born", year:1805, description:"Sharon, Vermont.", img:"https://study.com/cimages/multimages/16/emmahsmith31857573227745121765.jpg"},
+  {id:"CH002", label:"The First Vision", year:1820, description:"God the Father and Jesus Christ appeared to Joseph Smith.", img:"https://assets.churchofjesuschrist.org/fe/5d/fe5db8da0174bc36aff99e6ae7b55e337d9eb965/the_first_vision.jpeg"},
+  {id:"CH003", label:"Angel Moroni appears", year:1823, description:"Moroni tells of the plates.", img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQafKH36ycUUXjkSuqnM1-UsDEtxSMeUAA0sg&s"},
+  {id:"CH004", label:"Joseph Smith receives the plates", year:1827, description:"Receives the golden plates from Moroni.", img:"https://assets.ldscdn.org/3f/27/3f2757417cfe503f8b7fc0f21d59db86f5aaaed7/angel_moroni_delivering_the_plates_to_joseph_smith.jpeg"},
+  {id:"CH005", label:"Book of Mormon translation completed", year:1829, description:"Translation completed.", img:"https://latterdaysaintmag.com/wp-content/uploads/2019/01/translation.png"},
+  {id:"CH006", label:"Priesthood restored", year:1829, description:"Aaronic and Melchizedek Priesthoods restored.", img:"https://www.churchofjesuschrist.org/imgs/f61405efecbb567c9f8813ab428b1354dc8bd80c/full/%21500%2C/0/default"},
+  {id:"CH007", label:"Book of Mormon published", year:1830, description:"First edition in Palmyra, New York.", img:"https://assets.ldscdn.org/6e/f7/6ef757b11f5eb48b42974f793fdfd34180375a33/1830_book_mormon_cover.jpeg"},
+  {id:"CH008", label:"The Church organized", year:1830, description:"Organized in Fayette, New York.", img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlVW7K0Fo2ywUXkclZKgIIR2QIApRB9QJ6AA&s"},
+  {id:"CH009", label:"Saints gather in Kirtland", year:1831, description:"Kirtland, Ohio, becomes a gathering place.", img:"https://assets.churchofjesuschrist.org/cc/c8/ccc85f077d0aac23ae2cd1ee813fdd6dc96863d3/pioneers_wagons_kirtland.jpeg"},
+  {id:"CH010", label:"Independence designated as Zion", year:1831, description:"Designated for the city of Zion.", img:"https://interpreterfoundation.org/wp-content/uploads/2021/04/44_04_Addams-Picture30.jpg"},
+  {id:"CH011", label:"Saints expelled from Jackson County", year:1833, description:"Forced to leave Jackson County, Missouri.", img:"https://www.lds.org/bc/content/shared/content/images/gospel-library/manual/PD60005476/E16UCA40.jpg"},
+  {id:"CH012", label:"Zion’s Camp", year:1834, description:"Camp of Israel marches to Missouri.", img:"https://i.ytimg.com/vi/xyQtuVUOUKE/mqdefault.jpg"},
+  {id:"CH013", label:"Apostles and Seventy organized", year:1835, description:"Quorum of the Twelve and Seventy organized.", img:"https://rsc.byu.edu/sites/default/files/pub_content/image/3776/Joseph-and-the-Brethren_SMALLER-web.jpg"},
+  {id:"CH014", label:"Kirtland Temple dedicated", year:1836, description:"First temple dedicated in this dispensation.", img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwbFuYkWyWwtiRZ7rysYNCca9GIcwEyetcpA&s"},
+  {id:"CH015", label:"Priesthood keys restored in Kirtland Temple", year:1836, description:"Keys committed to Joseph and Oliver.", img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRluwujeJj8pzQavcwElVbRo35TSQWxQeXHjg&s"},
+  {id:"CH016", label:"Leaders move to Far West", year:1838, description:"Church leaders move to Far West, Missouri.", img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6WutHC7zTk5qGlDNvz-PPFl9f37wXtXBXBA&s"},
+  {id:"CH017", label:"Liberty Jail", year:1838, description:"Joseph Smith imprisoned in Liberty Jail.", img:"https://assets.ldscdn.org/2b/75/2b75d00b8531932e23a314efa4a0845b136d0cd6/joseph_smith_sitting_jail_writing.jpeg"},
+  {id:"CH018", label:"Saints driven from Missouri", year:1839, description:"Forced to leave Missouri.", img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSoCpOpG3E0ngEfbmUWTN7XgqJ1fD8wXfJK9A&s"},
 ];
 
-/* ----- Helpers & State ----- */
+/* ---------- Small helpers / state ---------- */
 const $ = s => document.querySelector(s);
-const timelineEl = $("#timeline"), heartsEl = $("#hearts"), currentSlot=$("#currentSlot"), bufferSlot=$("#bufferSlot");
+const timelineEl = $("#timeline");
+const nextDock = $("#nextDock");
+const heartsEl = $("#hearts");
 const endModal = $("#end"), endTitle=$("#endTitle"), endSub=$("#endSub");
 const MAX_LIVES = 3;
-let lives = 3, score = 0, deck=[], played=[], next=null, buffer=null;
+
+let lives = MAX_LIVES, deck=[], played=[], next=null;
 
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
 function hearts(){ heartsEl.innerHTML=""; for(let i=0;i<MAX_LIVES;i++){ heartsEl.appendChild(svgHeart(i<lives)); } }
-function svgHeart(on=true){ const d=document.createElement("div"); d.className="heart"+(on?"":" off"); d.innerHTML=`<svg viewBox="0 0 24 24" width="28" height="28"><path fill="#ef4444" d="M12 21s-5.9-3.1-8.4-7C2 11.5 3.1 8 6.3 8c1.5 0 2.6.7 3.2 1.5C10.1 8.7 11.2 8 12.7 8c3.2 0 4.3 3.5 2.5 6.1C17.9 17.9 12 21 12 21z"/></svg>`; return d; }
+function svgHeart(on=true){ const d=document.createElement("div"); d.className="heart"+(on?"":" off"); d.innerHTML=`<svg viewBox="0 0 24 24" width="30" height="30"><path fill="#ef4444" d="M12 21s-5.9-3.1-8.4-7C2 11.5 3.1 8 6.3 8c1.5 0 2.6.7 3.2 1.5C10.1 8.7 11.2 8 12.7 8c3.2 0 4.3 3.5 2.5 6.1C17.9 17.9 12 21 12 21z"/></svg>`; return d; }
 
-/* ----- Timeline render ----- */
+/* ---------- Rendering ---------- */
 function renderTimeline(){
   timelineEl.innerHTML="";
   timelineEl.appendChild(makeGap(0));
@@ -136,10 +151,10 @@ function renderTimeline(){
 }
 function makeYearCard(item){
   const c=document.createElement("div"); c.className="card";
-  c.innerHTML = `
+  c.innerHTML=`
     <div class="hd">${item.label}</div>
     <div class="sub">Event</div>
-    <div class="img"></div>
+    <div class="img" style="background-image:url('${item.img||""}')"></div>
     <div class="yr">${item.year}</div>`;
   return c;
 }
@@ -147,24 +162,20 @@ function makeGap(pos){
   const g=document.createElement("div"); g.className="gap"; g.dataset.pos=String(pos);
   return g;
 }
-
-/* ----- Queue (drag via Pointer Events) ----- */
-function renderQueue(){
-  currentSlot.innerHTML = next ? "" : "All cards placed!";
-  bufferSlot.innerHTML  = buffer ? "" : "No more cards";
-  if(next)   currentSlot.appendChild(makeQueueCard(next));
-  if(buffer) bufferSlot.appendChild(makeQueueCard(buffer));
-}
-function makeQueueCard(item){
-  const c=document.createElement("div"); c.className="qcard"; c.dataset.id=item.id;
+function renderNext(){
+  nextDock.innerHTML = "";
+  if(!next){ return; }
+  const c=document.createElement("div"); c.className="qcard"; c.dataset.id=next.id;
   c.innerHTML=`
-    <div class="hd">${item.label}</div>
+    <div class="hd">${next.label}</div>
     <div class="sub">Event</div>
-    <div class="img">Drag onto the timeline gaps ↓</div>
+    <div class="img" style="background-image:url('${next.img||""}')"></div>
     <div class="foot">created</div>`;
-  enablePointerDrag(c, item);
-  return c;
+  nextDock.appendChild(c);
+  enablePointerDrag(c, next);
 }
+
+/* ---------- Drag (Pointer Events) ---------- */
 function enablePointerDrag(el, item){
   let dragging=false, ghost=null;
 
@@ -174,14 +185,14 @@ function enablePointerDrag(el, item){
     // highlight nearest gap
     const rects=[...timelineEl.querySelectorAll(".gap")].map(g=>({g, r:g.getBoundingClientRect()}));
     let best=null, dist=1e9;
-    rects.forEach(({g,r},i)=>{
+    rects.forEach(({g,r})=>{
       const cx=Math.max(r.left, Math.min(x, r.right));
       const cy=Math.max(r.top,  Math.min(y, r.bottom));
       const d=(cx-x)*(cx-x)+(cy-y)*(cy-y);
-      if(d<dist){ dist=d; best={g,index:i}; }
+      if(d<dist){ dist=d; best=g; }
     });
     timelineEl.querySelectorAll(".gap").forEach(g=>g.classList.remove("on"));
-    if(best) best.g.classList.add("on");
+    if(best) best.classList.add("on");
   };
 
   const endDrag = ()=>{
@@ -195,7 +206,7 @@ function enablePointerDrag(el, item){
   };
 
   const pm = e => onMove(e.clientX, e.clientY);
-  const pu = e => endDrag();
+  const pu = () => endDrag();
 
   el.addEventListener("pointerdown", e=>{
     e.preventDefault();
@@ -208,28 +219,38 @@ function enablePointerDrag(el, item){
   }, {passive:false});
 }
 
-/* ----- Game logic ----- */
+/* ---------- Game logic ---------- */
 function start(){
-  lives=MAX_LIVES; score=0;
-  deck = shuffle([...EVENTS]); played=[];
-  const anchor=deck.shift(); if(anchor) played.push(anchor); // seed like Wikitrivia
-  next = deck.shift()||null; buffer = deck.shift()||null;
-  hearts(); renderTimeline(); renderQueue();
+  lives = MAX_LIVES;
+  deck = shuffle([...EVENTS]);
+  played = [];
+
+  // seed with one anchor card
+  const anchor = deck.shift();
+  if(anchor) played.push(anchor);
+
+  next = deck.shift() || null;
+
+  hearts();
+  renderTimeline();
+  renderNext();
 }
 
 function placeAt(index){
-  // correct index for 'next'
+  // where should 'next' belong?
   const withCandidate = [...played, next].sort((a,b)=>a.year-b.year);
   const correctIndex = withCandidate.findIndex(i=>i.id===next.id);
 
   // insert where dropped
   played.splice(index,0,next);
   renderTimeline();
+
+  // mark visual state
   const insertedCard = timelineEl.querySelectorAll(".card")[index];
   if(insertedCard) insertedCard.classList.add(index===correctIndex? "ok":"bad");
 
   if(index===correctIndex){
-    setTimeout(()=>{ renderTimeline(); advance(); }, 280);
+    setTimeout(()=>{ renderTimeline(); advance(); }, 260);
   }else{
     lives--; hearts();
     setTimeout(()=>{
@@ -244,8 +265,8 @@ function placeAt(index){
 }
 
 function advance(){
-  next = buffer; buffer = deck.shift()||null;
-  renderQueue();
+  next = deck.shift() || null;
+  renderNext();
   if(!next) showEnd(true);
 }
 
@@ -256,8 +277,9 @@ function showEnd(win){
     : `You placed ${played.length-1}. Try again!`;
   endModal.classList.add("show");
 }
-$("#again").addEventListener("click", ()=>{ endModal.classList.remove("show"); start(); });
-$("#restart").addEventListener("click", ()=> start());
+
+document.getElementById("again").addEventListener("click", ()=>{ endModal.classList.remove("show"); start(); });
+document.getElementById("restart").addEventListener("click", ()=> start());
 
 /* init */
 start();
