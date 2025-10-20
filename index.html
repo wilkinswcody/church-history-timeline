@@ -15,35 +15,42 @@
   html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
   .app{min-height:100vh;display:flex;flex-direction:column}
 
-  /* Hearts */
-  .hearts{position:fixed;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:40}
+  /* Hearts: pin to top-right so they never overlap the help text */
+  .hearts{
+    position:fixed; top:10px; right:18px; left:auto; transform:none;
+    display:flex; gap:12px; z-index:40;
+  }
   .heart{width:30px;height:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
   .off{opacity:.28;filter:grayscale(1) brightness(.7)}
 
-  /* Top info + restart (add top padding so hearts never overlap it) */
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:64px 18px 14px;gap:14px}
-  .help{color:var(--muted);font-size:14px}
+  /* Top help + restart */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 18px 14px; gap:14px;
+  }
+  .help{color:var(--muted);font-size:14px; max-width:820px}
   .btn{appearance:none;border:1px solid #2a3a57;background:transparent;color:#93c5fd;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800}
 
-  /* Stage */
+  /* Stage / board */
   .stage{position:relative;flex:1;display:flex;flex-direction:column;padding:0 16px 16px}
   .board{
-    flex:1;border:1px solid #0b1220;border-radius:16px;
+    position:relative; flex:1; overflow:hidden;
+    border:1px solid #0b1220; border-radius:16px;
     background:linear-gradient(0deg,#0f1b2f,transparent);
-    box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;
-    /* NEW: reserve vertical space so timeline never sits under the next card */
-    padding-top:160px;
+    box-shadow:var(--shadow);
+    /* Reserve vertical space so timeline never sits under the floating card */
+    padding-top:220px;
   }
   .baseline{height:1px;background:var(--line);position:relative}
   .baseline::after{content:"";position:absolute;inset:0;border-top:1px dashed #2a3a5a;opacity:.55}
 
-  /* Next card dock (centered top like WikiTrivia) */
-  .nextDock{position:absolute;left:50%;top:90px;transform:translateX(-50%);z-index:30}
+  /* Next card dock (floats above timeline) */
+  .nextDock{position:absolute; left:50%; top:72px; transform:translateX(-50%); z-index:30}
   .nextDock .qcard{width:260px}
 
-  /* Timeline row */
+  /* Scrollable area + timeline row */
   .content{position:relative;flex:1;overflow:auto;padding:18px}
-  .timeline{display:flex;align-items:flex-end;gap:24px;min-height:280px;padding-top:6px}
+  .timeline{display:flex;align-items:flex-end;gap:28px;min-height:300px;padding-top:6px}
   .gap{width:28px;height:156px;border-radius:10px;background:linear-gradient(180deg,#3b82f612,#3b82f618,#3b82f612);opacity:.35;transition:.12s;border:1px dashed transparent}
   .gap.on{opacity:1;border-color:#60a5fa}
 
