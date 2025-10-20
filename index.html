@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Church History Timeline — Wikitrivia Style</title>
+<style>
+  :root{
+    --bg:#0e1626; --surface:#0f1b2f; --line:#223149;
+    --text:#e6edf3; --muted:#98a6be; --white:#ffffff;
+    --blue1:#3b82f6; --blue2:#1d4ed8; --green:#22c55e; --red:#ef4444;
+    --r:14px; --shadow:0 12px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;user-select:none}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  .app{height:100vh;display:flex;flex-direction:column}
+  .hearts{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:3}
+  .heart{width:28px;height:28px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+  .heart svg{display:block}
+  .off{opacity:.28;filter:grayscale(1) brightness(.6)}
+
+  .wrap{flex:1;display:flex;flex-direction:column;padding:0 16px 16px}
+  .board{flex:1;border:1px solid #0b1220;border-radius:16px;background:linear-gradient(0deg,#0f1b2f,transparent);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+  .help{padding:10px 14px;color:var(--muted);font-size:14px}
+  .baseline{position:relative;height:1px;background:var(--line)}
+  .baseline::after{content:"";position:absolute;inset:0;border-top:1px dashed #2a3a5a;opacity:.5}
+
+  .stage{position:relative;flex:1;overflow:auto;padding:18px}
+  .timeline{display:flex;align-items:flex-end;gap:18px;min-height:240px;position:relative;padding-top:24px}
+  .gap{width:26px;height:148px;border-radius:10px;background:linear-gradient(180deg,#3b82f612,#3b82f618,#3b82f612);opacity:.35;transition:.12s;border:1px dashed transparent}
+  .gap.on{opacity:1;border-color:#60a5fa}
+
+  .card{width:240px;min-width:240px;border-radius:12px;border:1px solid #0b1220;overflow:hidden;box-shadow:var(--shadow);background:#e8eef8}
+  .card .hd{background:var(--white);padding:10px 12px 4px;font-weight:800;color:#0b1220}
+  .card .sub{background:var(--white);padding:0 12px 10px;color:#475569;font-size:12px}
+  .card .img{height:88px;background:#dfe8f5}
+  .card .yr{padding:8px 12px;background:#0b1220;color:#cbd5e1;font-weight:800}
+  .card.ok .yr{background:#065f46;color:#a7f3d0}
+  .card.bad .yr{background:#7f1d1d;color:#fecaca}
+
+  .queue{display:flex;gap:16px;padding:12px 16px;border-top:1px solid #0b1220;background:linear-gradient(180deg,transparent,#0f1b2f)}
+  .slot{flex:1;min-height:120px;border:1px dashed #2a3b55;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#93c5fd}
+  .qcard{width:260px;min-width:260px;border-radius:12px;border:1px solid #0b1220;overflow:hidden;box-shadow:var(--shadow);background:#e8eef8;touch-action:none}
+  .qcard .hd{background:var(--white);padding:10px 12px 4px;font-weight:800;color:#0b1220}
+  .qcard .sub{background:var(--white);padding:0 12px 10px;color:#475569;font-size:12px}
+  .qcard .img{height:88px;background:linear-gradient(180deg,#f1f5ff 0,#e5ecff 100%);display:flex;align-items:center;justify-content:center;color:#64748b;font-size:12px}
+  .qcard .foot{padding:8px 12px;text-align:center;font-weight:800;color:#0b1220;background:linear-gradient(0deg,var(--blue2) 0%, var(--blue1) 120%)}
+
+  .actions{display:flex;align-items:center;gap:10px}
+  .btn{appearance:none;border:0;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800}
+  .btn.ghost{background:transparent;color:#93c5fd;border:1px solid #334155}
+
+  .dragging{position:fixed;pointer-events:none;transform:translate(-50%,-50%) scale(.98);z-index:50}
+
+  .end{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:80}
+  .end.show{display:flex}
+  .modal{width:min(560px,92vw);background:#0e1524;border:1px solid #0b1220;border-radius:18px;box-shadow:var(--shadow);padding:22px;text-align:center}
+  .modal h2{margin:0 0 8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hearts" id="hearts"></div>
+
+  <div class="wrap">
+    <div class="board">
+      <div class="help">Drag the blue card into the correct place on the timeline. Wrong drops cost a heart and then snap to the correct spot.</div>
+      <div class="baseline"></div>
+
+      <div class="stage">
+        <div id="timeline" class="timeline"></div>
+      </div>
+
+      <div class="queue">
+        <div class="slot" id="currentSlot">Loading…</div>
+        <div class="slot" id="bufferSlot">Next card</div>
+        <div class="actions"><button id="restart" class="btn ghost">Restart</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="end" class="end">
+  <div class="modal">
+    <h2 id="endTitle">All done! 🎉</h2>
+    <p id="endSub" style="color:#98a6be"></p>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:10px">
+      <button class="btn" style="background:#3b82f6;color:#0b1220" id="again">Play again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ----- Data (1805–1839) ----- */
+const EVENTS = [
+  {id:"CH001", label:"Joseph Smith was born", year:1805, description:"Sharon, Vermont."},
+  {id:"CH002", label:"The First Vision", year:1820, description:"God the Father and Jesus Christ appeared to Joseph Smith."},
+  {id:"CH003", label:"Angel Moroni appears", year:1823, description:"Moroni tells of the plates."},
+  {id:"CH004", label:"Joseph Smith receives the plates", year:1827, description:"Receives the golden plates from Moroni."},
+  {id:"CH005", label:"Book of Mormon translation completed", year:1829, description:"Translation completed."},
+  {id:"CH006", label:"Priesthood restored", year:1829, description:"Aaronic and Melchizedek Priesthoods restored."},
+  {id:"CH007", label:"Book of Mormon published", year:1830, description:"First edition in Palmyra, New York."},
+  {id:"CH008", label:"The Church organized", year:1830, description:"Organized in Fayette, New York."},
+  {id:"CH009", label:"Saints gather in Kirtland", year:1831, description:"Kirtland, Ohio, becomes a gathering place."},
+  {id:"CH010", label:"Independence designated as Zion", year:1831, description:"Designated for the city of Zion."},
+  {id:"CH011", label:"Saints expelled from Jackson County", year:1833, description:"Forced to leave Jackson County, Missouri."},
+  {id:"CH012", label:"Zion’s Camp", year:1834, description:"Camp of Israel marches to Missouri."},
+  {id:"CH013", label:"Apostles and Seventy organized", year:1835, description:"Quorum of the Twelve and Seventy organized."},
+  {id:"CH014", label:"Kirtland Temple dedicated", year:1836, description:"First temple dedicated in this dispensation."},
+  {id:"CH015", label:"Priesthood keys restored in Kirtland Temple", year:1836, description:"Keys committed to Joseph and Oliver."},
+  {id:"CH016", label:"Leaders move to Far West", year:1838, description:"Church leaders move to Far West, Missouri."},
+  {id:"CH017", label:"Liberty Jail", year:1838, description:"Joseph Smith imprisoned in Liberty Jail."},
+  {id:"CH018", label:"Saints driven from Missouri", year:1839, description:"Forced to leave Missouri."},
+];
+
+/* ----- Helpers & State ----- */
+const $ = s => document.querySelector(s);
+const timelineEl = $("#timeline"), heartsEl = $("#hearts"), currentSlot=$("#currentSlot"), bufferSlot=$("#bufferSlot");
+const endModal = $("#end"), endTitle=$("#endTitle"), endSub=$("#endSub");
+const MAX_LIVES = 3;
+let lives = 3, score = 0, deck=[], played=[], next=null, buffer=null;
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+function hearts(){ heartsEl.innerHTML=""; for(let i=0;i<MAX_LIVES;i++){ heartsEl.appendChild(svgHeart(i<lives)); } }
+function svgHeart(on=true){ const d=document.createElement("div"); d.className="heart"+(on?"":" off"); d.innerHTML=`<svg viewBox="0 0 24 24" width="28" height="28"><path fill="#ef4444" d="M12 21s-5.9-3.1-8.4-7C2 11.5 3.1 8 6.3 8c1.5 0 2.6.7 3.2 1.5C10.1 8.7 11.2 8 12.7 8c3.2 0 4.3 3.5 2.5 6.1C17.9 17.9 12 21 12 21z"/></svg>`; return d; }
+
+/* ----- Timeline render ----- */
+function renderTimeline(){
+  timelineEl.innerHTML="";
+  timelineEl.appendChild(makeGap(0));
+  played.forEach((p,i)=>{
+    timelineEl.appendChild(makeYearCard(p));
+    timelineEl.appendChild(makeGap(i+1));
+  });
+}
+function makeYearCard(item){
+  const c=document.createElement("div"); c.className="card";
+  c.innerHTML = `
+    <div class="hd">${item.label}</div>
+    <div class="sub">Event</div>
+    <div class="img"></div>
+    <div class="yr">${item.year}</div>`;
+  return c;
+}
+function makeGap(pos){
+  const g=document.createElement("div"); g.className="gap"; g.dataset.pos=String(pos);
+  return g;
+}
+
+/* ----- Queue (drag via Pointer Events) ----- */
+function renderQueue(){
+  currentSlot.innerHTML = next ? "" : "All cards placed!";
+  bufferSlot.innerHTML  = buffer ? "" : "No more cards";
+  if(next)   currentSlot.appendChild(makeQueueCard(next));
+  if(buffer) bufferSlot.appendChild(makeQueueCard(buffer));
+}
+function makeQueueCard(item){
+  const c=document.createElement("div"); c.className="qcard"; c.dataset.id=item.id;
+  c.innerHTML=`
+    <div class="hd">${item.label}</div>
+    <div class="sub">Event</div>
+    <div class="img">Drag onto the timeline gaps ↓</div>
+    <div class="foot">created</div>`;
+  enablePointerDrag(c, item);
+  return c;
+}
+function enablePointerDrag(el, item){
+  let dragging=false, ghost=null;
+
+  const onMove = (x,y)=>{
+    if(!dragging||!ghost) return;
+    ghost.style.left = x+"px"; ghost.style.top = y+"px";
+    // highlight nearest gap
+    const rects=[...timelineEl.querySelectorAll(".gap")].map(g=>({g, r:g.getBoundingClientRect()}));
+    let best=null, dist=1e9;
+    rects.forEach(({g,r},i)=>{
+      const cx=Math.max(r.left, Math.min(x, r.right));
+      const cy=Math.max(r.top,  Math.min(y, r.bottom));
+      const d=(cx-x)*(cx-x)+(cy-y)*(cy-y);
+      if(d<dist){ dist=d; best={g,index:i}; }
+    });
+    timelineEl.querySelectorAll(".gap").forEach(g=>g.classList.remove("on"));
+    if(best) best.g.classList.add("on");
+  };
+
+  const endDrag = ()=>{
+    if(!dragging) return;
+    dragging=false;
+    document.removeEventListener("pointermove", pm);
+    document.removeEventListener("pointerup", pu);
+    ghost?.remove(); ghost=null;
+    const active=timelineEl.querySelector(".gap.on");
+    if(active){ active.classList.remove("on"); placeAt(Number(active.dataset.pos)); }
+  };
+
+  const pm = e => onMove(e.clientX, e.clientY);
+  const pu = e => endDrag();
+
+  el.addEventListener("pointerdown", e=>{
+    e.preventDefault();
+    dragging=true;
+    ghost=el.cloneNode(true); ghost.classList.add("dragging");
+    document.body.appendChild(ghost);
+    onMove(e.clientX,e.clientY);
+    document.addEventListener("pointermove", pm, {passive:false});
+    document.addEventListener("pointerup", pu, {once:true});
+  }, {passive:false});
+}
+
+/* ----- Game logic ----- */
+function start(){
+  lives=MAX_LIVES; score=0;
+  deck = shuffle([...EVENTS]); played=[];
+  const anchor=deck.shift(); if(anchor) played.push(anchor); // seed like Wikitrivia
+  next = deck.shift()||null; buffer = deck.shift()||null;
+  hearts(); renderTimeline(); renderQueue();
+}
+
+function placeAt(index){
+  // correct index for 'next'
+  const withCandidate = [...played, next].sort((a,b)=>a.year-b.year);
+  const correctIndex = withCandidate.findIndex(i=>i.id===next.id);
+
+  // insert where dropped
+  played.splice(index,0,next);
+  renderTimeline();
+  const insertedCard = timelineEl.querySelectorAll(".card")[index];
+  if(insertedCard) insertedCard.classList.add(index===correctIndex? "ok":"bad");
+
+  if(index===correctIndex){
+    setTimeout(()=>{ renderTimeline(); advance(); }, 280);
+  }else{
+    lives--; hearts();
+    setTimeout(()=>{
+      const [moved]=played.splice(index,1);
+      const to=clamp(correctIndex,0,played.length);
+      played.splice(to,0,moved);
+      renderTimeline();
+      if(lives<=0) showEnd(false);
+      else advance();
+    }, 380);
+  }
+}
+
+function advance(){
+  next = buffer; buffer = deck.shift()||null;
+  renderQueue();
+  if(!next) showEnd(true);
+}
+
+function showEnd(win){
+  endTitle.textContent = win ? "All done! 🎉" : "Game over";
+  endSub.textContent   = win
+    ? `You correctly placed ${played.length-1} of ${EVENTS.length-1} cards.`
+    : `You placed ${played.length-1}. Try again!`;
+  endModal.classList.add("show");
+}
+$("#again").addEventListener("click", ()=>{ endModal.classList.remove("show"); start(); });
+$("#restart").addEventListener("click", ()=> start());
+
+/* init */
+start();
+</script>
+</body>
+</html>
